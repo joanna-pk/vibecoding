@@ -700,6 +700,50 @@ export default function QuestLog() {
         </div>
       )}
 
+      {/* ─── Quick Break Buttons ─── */}
+      <div style={{
+        display: "flex", gap: 8, margin: "16px 16px 0", padding: 12,
+        background: "#1e1e3a", borderRadius: 12, border: "1px solid #2a2a3e",
+      }}>
+        <div style={{ fontSize: 11, color: "#7a7a9a", display: "flex", alignItems: "center", marginRight: 4 }}>
+          Quick Breaks:
+        </div>
+        {[
+          { id: "drink_break", label: "Tea Break", icon: "☕", color: "#38BDF8" },
+          { id: "food_break", label: "Food Break", icon: "🥗", color: "#FB923C" },
+          { id: "social", label: "Social Chat", icon: "💬", color: "#F9A8D4" },
+        ].map(b => {
+          const isActive = activeTask?.category === b.id;
+          return (
+            <button key={b.id} onClick={() => {
+              const breakId = Date.now().toString();
+              const breakTask = {
+                id: breakId,
+                title: b.label,
+                category: b.id,
+                priority: "low",
+                dueDate: null,
+                status: "pending",
+                totalTime: 0,
+                startedAt: null,
+                sessions: [],
+                createdAt: Date.now(),
+              };
+              setTasks(prev => [breakTask, ...prev]);
+              startTask(breakId);
+            }} style={{
+              padding: "6px 12px", borderRadius: 8, fontSize: 11, cursor: "pointer",
+              border: `1px solid ${b.color}33`,
+              background: isActive ? `${b.color}22` : "#1e1e3a",
+              color: b.color, fontWeight: 600,
+              display: "flex", alignItems: "center", gap: 4,
+            }}>
+              {b.icon} {b.label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* ─── Tab Navigation ─── */}
       <div style={{ display: "flex", gap: 0, margin: "16px 16px 0", borderBottom: "1px solid #2a2a3e" }}>
         {[
