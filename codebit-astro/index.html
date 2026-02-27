@@ -918,6 +918,14 @@ textarea.finput {
         <input class="gh-input" id="ghInput" placeholder="your-github-username" />
         <button class="btn-primary" id="ghFetch">Sync ⬡</button>
       </div>
+      <div class="gh-input-row" style="margin-top: 0.5rem;">
+        <input class="gh-input" type="password" id="ghToken" placeholder="GitHub token (optional - for auto-XP)" />
+        <button class="btn-primary" id="saveToken">Save Token</button>
+      </div>
+      <div style="font-size: 0.55rem; color: var(--muted); margin-top: 0.35rem; font-style: italic;">
+        Token enables auto-XP for commits (+15 XP each, checked every 1 min). 
+        <a href="https://github.com/settings/tokens" target="_blank" style="color: var(--bayes);">Get token here</a>
+      </div>
       <div id="ghContent" style="display:none">
         <div class="gh-stats-grid" id="ghStats"></div>
         <div class="gh-repos" id="ghRepos"></div>
@@ -1100,12 +1108,28 @@ function defaults(){
     papers: [],
     ghUser: '',
     ghCache: null,
+    ghToken: '',
+    ghLastCommitCheck: null,
+    ghCommitsSeen: [],
     log: []
   };
 }
 
-let S = (() => { try { return {...defaults(), ...JSON.parse(localStorage.getItem(KEY))}; } catch { return defaults(); } })();
-function save(){ localStorage.setItem(KEY, JSON.stringify(S)); }
+let S = (() => { 
+  try { 
+    const loaded = {...defaults(), ...JSON.parse(localStorage.getItem(KEY))};
+    loaded.ghCommitsSeen = new Set(loaded.ghCommitsSeen || []);
+    return loaded;
+  } catch { 
+    return defaults(); 
+  } 
+})();
+
+function save(){ 
+  const saveState = {...S};
+  saveState.ghCommitsSeen = Array.from(S.ghCommitsSeen || []);
+  localStorage.setItem(KEY, JSON.stringify(saveState)); 
+}
 
 // ══════════════════════════════════════════════════════════
 // STAGES  (stellar evolution — physically accurate)
@@ -1613,7 +1637,83 @@ function renderReport(){
 // ══════════════════════════════════════════════════════════
 // GITHUB
 // ══════════════════════════════════════════════════════════
+
+// CHECK FOR NEW COMMITS
+async function checkNewCommits() {
+  if(!S.ghUser) return;
+  
+  try {
+    const since = S.ghLastCommitCheck || new Date(Date.now() - 7*24*60*60*1000).toISOString();
+    const response = await fetch(`https://api.github.com/users/${S.ghUser}/events/public`);
+    
+    if(!response.ok) return;
+    
+    const events = await response.json();
+    const pushEvents = events.filter(e => e.type === 'PushEvent' && new Date(e.created_at) > new Date(since));
+    
+    let newCommits = 0;
+    pushEvents.forEach(event => {
+      event.payload.commits.forEach(commit => {
+        const commitId = `${event.repo.name}-${commit.sha}`;
+        if(!S.ghCommitsSeen.has(commitId)) {
+          S.ghCommitsSeen.add(commitId);
+          newCommits++;
+        }
+      });
+    });
+    
+    if(newCommits > 0) {
+      const xpEarned = newCommits * 15;
+      S.xp += xpEarned;
+      S.weekXP[S.weekXP.length-1] = (S.weekXP[S.weekXP.length-1]||0) + xpEarned;
+      
+      addLog(`⬡ ${newCommits} new commit${newCommits > 1 ? 's' : ''} detected! +${xpEarned} XP 🚀`);
+      
+      // Check for evolution
+      const prevStage = getStageIdx();
+      save();
+      const newStage = getStageIdx();
+      if(newStage > prevStage) {
+        addLog(`🌌 AUTO-EVOLVED → ${STAGES[newStage].name}! ${STAGES[newStage].pName} awakens from your code.`);
+      }
+      
+      render();
+    }
+    
+    S.ghLastCommitCheck = new Date().toISOString();
+    save();
+    
+  } catch(err) {
+    console.error('Commit check failed:', err);
+  }
+}
+
 document.getElementById('ghFetch').addEventListener('click', fetchGH);
+document.getElementById('saveToken').addEventListener('click', function() {
+  const token = document.getElementById('ghToken').value.trim();
+  if(!token) {
+    alert('Please enter a token');
+    return;
+  }
+  S.ghToken = token;
+  save();
+  
+  // Show success message
+  const btn = document.getElementById('saveToken');
+  const oldText = btn.textContent;
+  btn.textContent = 'Saved! ✓';
+  btn.style.background = 'rgba(52,211,153,0.2)';
+  
+  setTimeout(() => {
+    btn.textContent = oldText;
+    btn.style.background = '';
+  }, 2000);
+  
+  // Start checking for commits if we have a user
+  if(S.ghUser) {
+    checkNewCommits();
+  }
+});
 
 async function fetchGH(){
   const user = document.getElementById('ghInput').value.trim();
@@ -1639,6 +1739,7 @@ async function fetchGH(){
     save();
 
     renderGH(profile, repos);
+    checkNewCommits();
     document.getElementById('ghChip').style.display='';
     document.getElementById('ghChip').textContent=`⬡ ${user}`;
 
@@ -1742,6 +1843,11 @@ render();
 renderActGrid();
 renderPapers();
 renderReport();
+// ═══ AUTO-CHECK FOR COMMITS ═══
+if(S.ghUser) {
+  checkNewCommits(); // Check immediately on page load
+  setInterval(checkNewCommits, 1 * 60 * 1000); // Check every 1 minute
+}
 </script>
 </body>
 </html>
