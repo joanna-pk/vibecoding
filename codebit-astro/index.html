@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeBit — Stellar Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #05070e;
+  --s1: #0a0e1a;
+  --s2: #0f1525;
+  --border: #1a2035;
+  --border2: #222d45;
+  --jax: #38bdf8;
+  --xray: #f97316;
+  --gal: #a78bfa;
+  --bayes: #34d399;
+  --streak: #fbbf24;
+  --text: #dde4f0;
+  --muted: #4a5568;
+  --dim: #141b2d;
+  --white10: rgba(255,255,255,0.06);
+  --white20: rgba(255,255,255,0.12);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Libre Baskerville', Georgia, serif;
+  min-height: 100vh;
+  padding: 0 0 5rem;
+  background-image:
+    radial-gradient(ellipse at 10% 20%, rgba(56,189,248,0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 60%, rgba(167,139,250,0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(249,115,22,0.04) 0%, transparent 40%);
+}
+
+/* ── Starfield canvas ── */
+#starfield {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.app { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; padding: 2rem 1rem; }
+
+/* ── Nav tabs ── */
+.nav {
+  display: flex;
+  gap: 2px;
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 1.25rem;
+}
+
+.nav-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 0.4rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+  cursor: pointer;
+  letter-spacing: 0.07em;
+  transition: all 0.2s;
+}
+
+.nav-btn.active {
+  background: var(--s2);
+  color: var(--text);
+  border: 1px solid var(--border2);
+}
+
+/* ── Pages ── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ══════════════ PET PAGE ══════════════ */
+.pet-header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.pet-header h1 {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  margin-bottom: 0.15rem;
+}
+
+.pet-header .tagline {
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.card {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
+}
+
+/* Pet display */
+.pet-core {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.pet-svg-wrap {
+  flex-shrink: 0;
+  width: 130px;
+  height: 130px;
+  position: relative;
+}
+
+.pet-svg-wrap svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 10px rgba(56,189,248,0.3));
+  transition: filter 0.5s;
+}
+
+.pet-info { flex: 1; min-width: 0; }
+
+.pet-stage-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.15em;
+  color: var(--muted);
+  margin-bottom: 0.2rem;
+}
+
+.pet-name-display {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.6rem; }
+
+.chip {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  padding: 0.18rem 0.5rem;
+  border-radius: 99px;
+  border: 1px solid;
+}
+
+.chip.streak { color: var(--streak); border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.08); }
+.chip.xp     { color: var(--jax);   border-color: rgba(56,189,248,0.3);  background: rgba(56,189,248,0.08); }
+.chip.gh     { color: var(--bayes); border-color: rgba(52,211,153,0.3);  background: rgba(52,211,153,0.08); }
+
+.pet-quote {
+  font-style: italic;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* Skill bars */
+.skill-bars { display: flex; flex-direction: column; gap: 0.55rem; margin-bottom: 1.25rem; }
+
+.sbar-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 36px;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.sbar-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.57rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sbar-bg { height: 4px; background: var(--dim); border-radius: 99px; overflow: hidden; }
+
+.sbar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.sbar-fill.jax   { background: var(--jax);   box-shadow: 0 0 5px var(--jax); }
+.sbar-fill.xray  { background: var(--xray);  box-shadow: 0 0 5px var(--xray); }
+.sbar-fill.gal   { background: var(--gal);   box-shadow: 0 0 5px var(--gal); }
+.sbar-fill.bayes { background: var(--bayes); box-shadow: 0 0 5px var(--bayes); }
+
+.sbar-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--text);
+  text-align: right;
+}
+
+/* Evolution bar */
+.evo-wrap { display: flex; flex-direction: column; gap: 0.3rem; }
+
+.evo-header {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--muted);
+}
+
+.evo-bg { height: 3px; background: var(--dim); border-radius: 99px; overflow: hidden; }
+
+.evo-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--jax), var(--gal));
+  border-radius: 99px;
+  transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 0 5px rgba(167,139,250,0.5);
+}
+
+/* GitHub card */
+.gh-card {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.gh-input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.gh-input {
+  flex: 1;
+  background: var(--dim);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.gh-input:focus { border-color: var(--bayes); }
+.gh-input::placeholder { color: var(--muted); }
+
+.btn-primary {
+  background: rgba(52,211,153,0.1);
+  border: 1px solid rgba(52,211,153,0.35);
+  border-radius: 8px;
+  padding: 0.55rem 0.9rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--bayes);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover { background: rgba(52,211,153,0.18); }
+.btn-primary:disabled { opacity: 0.4; cursor: default; }
+
+.gh-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.gh-stat {
+  background: var(--dim);
+  border-radius: 10px;
+  padding: 0.7rem 0.6rem;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+
+.gh-stat .n {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: var(--bayes);
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.gh-stat .l {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.54rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+
+.gh-repos {
+  margin-top: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.gh-repos::-webkit-scrollbar { width: 3px; }
+.gh-repos::-webkit-scrollbar-thumb { background: var(--border2); }
+
+.repo-row {
+  background: var(--dim);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  transition: border-color 0.2s;
+}
+
+.repo-row:hover { border-color: var(--bayes); }
+
+.repo-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--bayes);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.repo-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--muted);
+  flex-shrink: 0;
+  display: flex;
+  gap: 0.6rem;
+}
+
+.repo-lang { color: var(--xray); }
+
+/* Contribution heatmap */
+.contrib-wrap { margin-top: 1rem; }
+
+.contrib-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.contrib-grid {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.contrib-grid::-webkit-scrollbar { height: 3px; }
+.contrib-grid::-webkit-scrollbar-thumb { background: var(--border2); }
+
+.contrib-col { display: flex; flex-direction: column; gap: 2px; }
+
+.contrib-cell {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--dim);
+  transition: transform 0.1s;
+}
+
+.contrib-cell:hover { transform: scale(1.3); }
+.contrib-cell.l1 { background: rgba(52,211,153,0.2); }
+.contrib-cell.l2 { background: rgba(52,211,153,0.45); }
+.contrib-cell.l3 { background: rgba(52,211,153,0.7); }
+.contrib-cell.l4 { background: rgba(52,211,153,0.95); }
+
+/* ══════════════ LOG PAGE ══════════════ */
+.section-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Work action tabs */
+.work-tabs { display: flex; gap: 0.35rem; margin-bottom: 0.85rem; flex-wrap: wrap; }
+
+.wtab {
+  background: var(--dim);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 0.35rem 0.65rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.18s;
+  letter-spacing: 0.05em;
+}
+
+.wtab.active-jax   { border-color: rgba(56,189,248,0.5); color: var(--jax); background: rgba(56,189,248,0.08); }
+.wtab.active-xray  { border-color: rgba(249,115,22,0.5); color: var(--xray); background: rgba(249,115,22,0.08); }
+.wtab.active-gal   { border-color: rgba(167,139,250,0.5); color: var(--gal); background: rgba(167,139,250,0.08); }
+.wtab.active-bayes { border-color: rgba(52,211,153,0.5); color: var(--bayes); background: rgba(52,211,153,0.08); }
+.wtab.active-gen   { border-color: rgba(255,255,255,0.2); color: var(--text); background: var(--s2); }
+
+.act-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+
+.act-btn {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem 0.7rem;
+  color: var(--text);
+  font-family: 'Libre Baskerville', serif;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  transition: all 0.16s ease;
+  text-align: left;
+}
+
+.act-btn:hover { transform: translateY(-2px); }
+.act-btn:active { transform: scale(0.97); }
+.act-btn.used { opacity: 0.28; pointer-events: none; }
+.act-btn .ico { font-size: 1rem; margin-bottom: 0.08rem; }
+
+.act-btn .xptag {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.55rem;
+  margin-top: 0.1rem;
+}
+
+.act-btn.j:hover { border-color: var(--jax); background: rgba(56,189,248,0.06); }
+.act-btn.j .xptag { color: var(--jax); }
+.act-btn.x:hover { border-color: var(--xray); background: rgba(249,115,22,0.06); }
+.act-btn.x .xptag { color: var(--xray); }
+.act-btn.g:hover { border-color: var(--gal); background: rgba(167,139,250,0.06); }
+.act-btn.g .xptag { color: var(--gal); }
+.act-btn.b:hover { border-color: var(--bayes); background: rgba(52,211,153,0.06); }
+.act-btn.b .xptag { color: var(--bayes); }
+
+/* Activity log */
+.log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.log-list::-webkit-scrollbar { width: 3px; }
+.log-list::-webkit-scrollbar-thumb { background: var(--border2); }
+
+.log-entry {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+  padding: 0.32rem 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 0.7rem;
+  animation: fadein 0.3s ease;
+}
+
+.log-entry:last-child { border-bottom: none; }
+.log-entry .lt { color: var(--jax); flex-shrink: 0; }
+
+@keyframes fadein { from { opacity:0; transform:translateX(-5px); } to { opacity:1; transform:none; } }
+
+/* ══════════════ PAPERS PAGE ══════════════ */
+.paper-form { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1rem; }
+
+.form-row { display: flex; gap: 0.5rem; }
+
+.finput {
+  flex: 1;
+  background: var(--dim);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.finput:focus { border-color: var(--gal); }
+.finput::placeholder { color: var(--muted); }
+
+textarea.finput {
+  resize: vertical;
+  min-height: 58px;
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.fselect {
+  background: var(--dim);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+}
+
+.fselect:focus { border-color: var(--gal); }
+
+.relevance-row { display: flex; gap: 0.35rem; align-items: center; }
+
+.rel-btn {
+  background: var(--dim);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.3rem 0.55rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.rel-btn.sel-core   { border-color: var(--jax);  color: var(--jax);  background: rgba(56,189,248,0.1); }
+.rel-btn.sel-adjacent { border-color: var(--gal); color: var(--gal); background: rgba(167,139,250,0.1); }
+.rel-btn.sel-tangential { border-color: var(--muted); color: var(--muted); background: var(--s2); }
+
+.rel-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.57rem;
+  color: var(--muted);
+}
+
+/* Paper list */
+.paper-filters { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+
+.pfilt {
+  background: var(--dim);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.28rem 0.55rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pfilt.active { border-color: var(--gal); color: var(--gal); background: rgba(167,139,250,0.08); }
+
+.paper-list { display: flex; flex-direction: column; gap: 0.5rem; max-height: 400px; overflow-y: auto; }
+.paper-list::-webkit-scrollbar { width: 3px; }
+.paper-list::-webkit-scrollbar-thumb { background: var(--border2); }
+
+.paper-item {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  animation: fadein 0.3s ease;
+  position: relative;
+}
+
+.paper-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+
+.paper-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.35;
+  flex: 1;
+}
+
+.paper-delete {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 0.1rem;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.paper-delete:hover { color: #ef4444; }
+
+.paper-meta { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+
+.cat-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.54rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  border: 1px solid;
+}
+
+.cat-jax   { color: var(--jax);  border-color: rgba(56,189,248,0.3);  background: rgba(56,189,248,0.08); }
+.cat-xray  { color: var(--xray); border-color: rgba(249,115,22,0.3);  background: rgba(249,115,22,0.08); }
+.cat-gal   { color: var(--gal);  border-color: rgba(167,139,250,0.3); background: rgba(167,139,250,0.08); }
+.cat-bayes { color: var(--bayes); border-color: rgba(52,211,153,0.3); background: rgba(52,211,153,0.08); }
+.cat-other { color: var(--muted); border-color: var(--border2); background: var(--dim); }
+
+.rel-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.rel-dot.core { background: var(--jax); box-shadow: 0 0 4px var(--jax); }
+.rel-dot.adjacent { background: var(--gal); }
+.rel-dot.tangential { background: var(--muted); }
+
+.rel-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.54rem;
+  color: var(--muted);
+}
+
+.paper-note {
+  font-style: italic;
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.paper-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.52rem;
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+/* empty state */
+.empty-state {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* ══════════════ REPORT PAGE ══════════════ */
+.report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; }
+
+.stat-box {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.stat-box .big {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.6rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.stat-box .lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.56rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+}
+
+.stat-box.j .big { color: var(--jax); }
+.stat-box.x .big { color: var(--xray); }
+.stat-box.g .big { color: var(--gal); }
+.stat-box.b .big { color: var(--bayes); }
+.stat-box.s .big { color: var(--streak); }
+.stat-box.gh .big { color: var(--bayes); }
+
+/* Donut charts via conic-gradient */
+.donut-wrap { display: flex; gap: 1rem; align-items: center; justify-content: center; padding: 1rem 0; }
+
+.donut {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.donut-inner {
+  position: absolute;
+  inset: 14px;
+  background: var(--s2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.donut-legend { display: flex; flex-direction: column; gap: 0.4rem; }
+
+.donut-leg-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+}
+
+.leg-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Week chart */
+.week-chart { display: flex; gap: 0.3rem; align-items: flex-end; height: 60px; margin: 0.75rem 0 0.3rem; }
+
+.wbar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.25rem; height: 100%; justify-content: flex-end; }
+
+.wbar {
+  width: 100%;
+  background: rgba(56,189,248,0.35);
+  border-radius: 3px 3px 0 0;
+  transition: height 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  min-height: 2px;
+}
+
+.wbar.today { background: var(--jax); box-shadow: 0 0 6px var(--jax); }
+
+.wday {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.52rem;
+  color: var(--muted);
+}
+
+/* Paper breakdown bar */
+.pb-bar-wrap { margin-bottom: 0.35rem; }
+
+.pb-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; }
+.pb-label { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--muted); width: 80px; flex-shrink: 0; }
+.pb-bg { flex: 1; height: 8px; background: var(--dim); border-radius: 99px; overflow: hidden; }
+.pb-fill { height: 100%; border-radius: 99px; transition: width 0.7s cubic-bezier(0.34,1.56,0.64,1); }
+.pb-n { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--text); width: 22px; text-align: right; }
+
+/* ghost / reset */
+.ghost-row { display: flex; justify-content: center; gap: 0.75rem; margin-top: 0.5rem; }
+
+.ghost {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.05em;
+}
+
+.ghost:hover { color: #ef4444; border-color: #ef4444; }
+.ghost.safe:hover { color: var(--bayes); border-color: var(--bayes); }
+
+/* Pet bounce/evolve */
+@keyframes bounce {
+  0%,100%{transform:translateY(0) scale(1);}
+  35%{transform:translateY(-14px) scale(1.07);}
+  65%{transform:translateY(-4px) scale(1.02);}
+}
+
+@keyframes evolve {
+  0%  {filter: drop-shadow(0 0 10px rgba(56,189,248,0.3));}
+  25% {filter: drop-shadow(0 0 40px rgba(255,255,255,0.9)) brightness(1.5);}
+  60% {filter: drop-shadow(0 0 25px rgba(249,115,22,0.8));}
+  100%{filter: drop-shadow(0 0 10px rgba(56,189,248,0.3));}
+}
+
+.bouncing svg { animation: bounce 0.55s cubic-bezier(0.34,1.56,0.64,1); }
+.evolving svg { animation: evolve 1.4s ease; }
+</style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+
+<div class="app">
+
+  <!-- Top nav -->
+  <nav class="nav">
+    <button class="nav-btn active" data-page="pet">✦ Pet</button>
+    <button class="nav-btn" data-page="log">// Log Work</button>
+    <button class="nav-btn" data-page="papers">∂ Papers</button>
+    <button class="nav-btn" data-page="report">◈ Report</button>
+  </nav>
+
+  <!-- ══ PET PAGE ══ -->
+  <div class="page active" id="page-pet">
+
+    <div class="pet-header">
+      <h1>CODEBIT — STELLAR EDITION</h1>
+      <p class="tagline">A creature of the cosmos, shaped by your work</p>
+    </div>
+
+    <div class="card">
+      <div class="pet-core">
+        <div class="pet-svg-wrap" id="petWrap">
+          <svg id="petSvg" viewBox="0 0 130 130" fill="none" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+        <div class="pet-info">
+          <div class="pet-stage-label" id="stageLabel">STAGE I</div>
+          <div class="pet-name-display" id="petNameDisplay">Planck</div>
+          <div class="chips">
+            <span class="chip streak" id="streakChip">🔥 0d</span>
+            <span class="chip xp" id="xpChip">✦ 0 XP</span>
+            <span class="chip gh" id="ghChip" style="display:none">⬡ GitHub</span>
+          </div>
+          <div class="pet-quote" id="petQuote">Waiting to be observed. Schrödinger's coder…</div>
+        </div>
+      </div>
+
+      <div class="skill-bars">
+        <div class="sbar-row">
+          <span class="sbar-label">JAX / ML</span>
+          <div class="sbar-bg"><div class="sbar-fill jax" id="bJax" style="width:0%"></div></div>
+          <span class="sbar-num" id="nJax">0</span>
+        </div>
+        <div class="sbar-row">
+          <span class="sbar-label">XSTAR / X-RAY</span>
+          <div class="sbar-bg"><div class="sbar-fill xray" id="bXray" style="width:0%"></div></div>
+          <span class="sbar-num" id="nXray">0</span>
+        </div>
+        <div class="sbar-row">
+          <span class="sbar-label">GALAXIES / UVEX</span>
+          <div class="sbar-bg"><div class="sbar-fill gal" id="bGal" style="width:0%"></div></div>
+          <span class="sbar-num" id="nGal">0</span>
+        </div>
+        <div class="sbar-row">
+          <span class="sbar-label">BAYES / STATS</span>
+          <div class="sbar-bg"><div class="sbar-fill bayes" id="bBayes" style="width:0%"></div></div>
+          <span class="sbar-num" id="nBayes">0</span>
+        </div>
+      </div>
+
+      <div class="evo-wrap" style="margin-top:1.25rem">
+        <div class="evo-header">
+          <span>EVOLUTION PROGRESS</span>
+          <span id="evoNext"></span>
+        </div>
+        <div class="evo-bg"><div class="evo-fill" id="evoFill" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- GitHub card -->
+    <div class="gh-card">
+      <div class="section-title">GitHub</div>
+      <div class="gh-input-row">
+        <input class="gh-input" id="ghInput" placeholder="your-github-username" />
+        <button class="btn-primary" id="ghFetch">Sync ⬡</button>
+      </div>
+      <div id="ghContent" style="display:none">
+        <div class="gh-stats-grid" id="ghStats"></div>
+        <div class="gh-repos" id="ghRepos"></div>
+      </div>
+      <div id="ghError" style="display:none; font-family:'DM Mono',monospace; font-size:0.65rem; color:#ef4444; margin-top:0.75rem;"></div>
+    </div>
+
+    <div class="ghost-row">
+      <button class="ghost safe" id="newDayBtn">⏭ next day (debug)</button>
+      <button class="ghost" id="resetBtn">↺ reset pet</button>
+    </div>
+  </div>
+
+  <!-- ══ LOG PAGE ══ -->
+  <div class="page" id="page-log">
+    <div class="card">
+      <div class="section-title">Daily Work Log</div>
+
+      <div class="work-tabs" id="workTabs">
+        <button class="wtab active-gen" data-wcat="gen">General</button>
+        <button class="wtab" data-wcat="jax">JAX / ML</button>
+        <button class="wtab" data-wcat="xray">XSTAR / X-ray</button>
+        <button class="wtab" data-wcat="gal">Galaxies / UVEX</button>
+        <button class="wtab" data-wcat="bayes">Bayes / Stats</button>
+      </div>
+
+      <div class="act-grid" id="actGrid"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Today's Activity</div>
+      <div class="log-list" id="logList">
+        <div class="log-entry"><span class="lt">INIT</span><span>Planck materialised from quantum foam 🌌</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAPERS PAGE ══ -->
+  <div class="page" id="page-papers">
+    <div class="card">
+      <div class="section-title">Add Paper</div>
+      <div class="paper-form">
+        <input class="finput" id="pTitle" placeholder="Paper title / arXiv ID" />
+        <div class="form-row">
+          <select class="fselect" id="pCat">
+            <option value="jax">JAX / ML</option>
+            <option value="xray">XSTAR / X-ray</option>
+            <option value="gal">Galaxies / UVEX</option>
+            <option value="bayes">Bayes / Stats</option>
+            <option value="other">Other</option>
+          </select>
+          <input class="finput" id="pAuthors" placeholder="Authors (optional)" />
+        </div>
+        <textarea class="finput" id="pNote" placeholder="Why does this matter? Key takeaway… (helps you remember)"></textarea>
+        <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+          <div class="relevance-row" id="relRow">
+            <span class="rel-label">Relevance:</span>
+            <button class="rel-btn" data-rel="core">🎯 Core</button>
+            <button class="rel-btn" data-rel="adjacent">◎ Adjacent</button>
+            <button class="rel-btn" data-rel="tangential">· Tangential</button>
+          </div>
+          <button class="btn-primary" id="addPaperBtn" style="margin-left:auto">Add Paper</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Reading List</div>
+      <div class="paper-filters" id="paperFilters">
+        <button class="pfilt active" data-pf="all">All</button>
+        <button class="pfilt" data-pf="jax">JAX/ML</button>
+        <button class="pfilt" data-pf="xray">X-ray</button>
+        <button class="pfilt" data-pf="gal">Galaxies</button>
+        <button class="pfilt" data-pf="bayes">Bayes</button>
+        <button class="pfilt" data-pf="other">Other</button>
+        <button class="pfilt" data-pf="core">🎯 Core only</button>
+      </div>
+      <div class="paper-list" id="paperList"></div>
+    </div>
+  </div>
+
+  <!-- ══ REPORT PAGE ══ -->
+  <div class="page" id="page-report">
+    <div class="card">
+      <div class="section-title">Overview</div>
+      <div class="report-grid">
+        <div class="stat-box s">
+          <span class="big" id="r-streak">0</span>
+          <span class="lbl">DAY STREAK</span>
+        </div>
+        <div class="stat-box gh">
+          <span class="big" id="r-xp">0</span>
+          <span class="lbl">TOTAL XP</span>
+        </div>
+        <div class="stat-box j">
+          <span class="big" id="r-papers">0</span>
+          <span class="lbl">PAPERS READ</span>
+        </div>
+        <div class="stat-box g">
+          <span class="big" id="r-actions">0</span>
+          <span class="lbl">WORK ACTIONS</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">XP This Week</div>
+      <div class="week-chart" id="weekChart"></div>
+      <div style="display:flex; gap:0.3rem; justify-content:space-around;">
+        <!-- day labels injected by JS -->
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Skill Focus</div>
+      <div class="donut-wrap">
+        <div class="donut" id="donutChart">
+          <div class="donut-inner" id="donutCenter">—</div>
+        </div>
+        <div class="donut-legend" id="donutLegend"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Papers by Category</div>
+      <div id="paperBreakdown"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Focus Warning ⚠️</div>
+      <div id="distractionWarn" style="font-style:italic; font-size:0.82rem; color:var(--muted); line-height:1.6;"></div>
+    </div>
+  </div>
+
+</div><!-- end .app -->
+
+<script>
+// ══════════════════════════════════════════════════════════
+// STARFIELD
+// ══════════════════════════════════════════════════════════
+(function(){
+  const c = document.getElementById('starfield');
+  const ctx = c.getContext('2d');
+  function resize(){ c.width = window.innerWidth; c.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+  const stars = Array.from({length:180}, () => ({
+    x: Math.random(), y: Math.random(),
+    r: Math.random()*1.2+0.2,
+    a: Math.random(),
+    speed: Math.random()*0.0004+0.0001
+  }));
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    stars.forEach(s => {
+      s.a += s.speed;
+      const alpha = 0.15 + 0.25*Math.abs(Math.sin(s.a));
+      ctx.beginPath();
+      ctx.arc(s.x*c.width, s.y*c.height, s.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(200,220,255,${alpha})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ══════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════
+const KEY = 'codebit_stellar_v1';
+
+function defaults(){
+  return {
+    xp: 0, streak: 0,
+    jax:0, xray:0, gal:0, bayes:0,
+    lastDate: null, usedToday: [],
+    weekXP: [0,0,0,0,0,0,0],   // mon→sun
+    totalActions: 0,
+    papers: [],
+    ghUser: '',
+    ghCache: null,
+    log: []
+  };
+}
+
+let S = (() => { try { return {...defaults(), ...JSON.parse(localStorage.getItem(KEY))}; } catch { return defaults(); } })();
+function save(){ localStorage.setItem(KEY, JSON.stringify(S)); }
+
+// ══════════════════════════════════════════════════════════
+// STAGES  (stellar evolution — physically accurate)
+// ══════════════════════════════════════════════════════════
+const STAGES = [
+  { id:'hydrogen',  name:'HYDROGEN ATOM',  minXP:0,    pName:'Planck',
+    quote:"Waiting to be observed. Schrödinger's coder…" },
+  { id:'spectral',  name:'SPECTRAL LINE',  minXP:60,   pName:'Payne-Gaposchkin',
+    quote:'A faint emission from the void. Something is beginning to shine.' },
+  { id:'proto',     name:'PROTOSTAR',      minXP:180,  pName:'Roman',
+    quote:'Gravity is winning. Collapse is creation — the Kelvin-Helmholtz phase begins.' },
+  { id:'mainseq',   name:'MAIN SEQUENCE',  minXP:380,  pName:'Leavitt',
+    quote:'Steady hydrogen fusion. Luminosity tells distance — and distance tells everything.' },
+  { id:'giant',     name:'RED GIANT',      minXP:700,  pName:'Burnell',
+    quote:'Helium flash. Shell burning. Pulsing into the cosmos at 1400 MHz.' },
+  { id:'bh',        name:'BLACK HOLE',     minXP:1100, pName:'Penrose',
+    quote:'Singularity theorem satisfied. R_s = 2GM/c². Event horizon sealed.' },
+  { id:'xrb',       name:'X-RAY BINARY',   minXP:1700, pName:'García',
+    quote:'Accretion disk blazing. Reflection spectroscopy. L_x ~ 10³⁸ erg/s. Javier smiles.' },
+];
+
+function getStageIdx(){ for(let i=STAGES.length-1;i>=0;i--) if(S.xp>=STAGES[i].minXP) return i; return 0; }
+
+// ══════════════════════════════════════════════════════════
+// PET SVG
+// ══════════════════════════════════════════════════════════
+function drawPet(idx){
+  const svg = document.getElementById('petSvg');
+  const pal = ['#a5b4fc','#c084fc','#f472b6','#fbbf24','#f87171','#94a3b8','#fb923c'];
+  const c = pal[idx];
+
+  const frames = [
+    // 0 — Hydrogen atom: nucleus + electron orbits
+    `<circle cx="65" cy="65" r="10" fill="${c}" opacity="0.9"/>
+     <ellipse cx="65" cy="65" rx="38" ry="11" stroke="${c}" stroke-width="1.2" fill="none" opacity="0.4"/>
+     <ellipse cx="65" cy="65" rx="11" ry="38" stroke="${c}" stroke-width="1.2" fill="none" opacity="0.4" transform="rotate(60 65 65)"/>
+     <ellipse cx="65" cy="65" rx="11" ry="38" stroke="${c}" stroke-width="1.2" fill="none" opacity="0.4" transform="rotate(-60 65 65)"/>
+     <circle cx="65" cy="27" r="3.5" fill="${c}" opacity="0.8"/>
+     <circle cx="65" cy="65" r="5" fill="white" opacity="0.15"/>
+     <circle cx="60" cy="62" r="2.8" fill="#05070e"/>
+     <circle cx="70" cy="62" r="2.8" fill="#05070e"/>
+     <path d="M61 70 Q65 74 69 70" stroke="#05070e" stroke-width="1.3" fill="none" stroke-linecap="round"/>`,
+
+    // 1 — Spectral line: slim figure with emission line spectrum
+    `<ellipse cx="65" cy="72" rx="24" ry="32" fill="${c}" opacity="0.87"/>
+     <ellipse cx="65" cy="62" rx="14" ry="9" fill="white" opacity="0.1"/>
+     ${[55,59,64,70,74,80].map((x,i)=>`<line x1="${x}" y1="104" x2="${x}" y2="118" stroke="${['#f472b6','white','#38bdf8',c,'white','#f472b6'][i]}" stroke-width="${[2,1,2.5,1.5,1,2][i]}" opacity="0.6"/>`).join('')}
+     <circle cx="58" cy="68" r="4.5" fill="#05070e"/><circle cx="72" cy="68" r="4.5" fill="#05070e"/>
+     <circle cx="59.5" cy="67" r="1.4" fill="${c}"/><circle cx="73.5" cy="67" r="1.4" fill="${c}"/>
+     <path d="M60 79 Q65 84 70 79" stroke="#05070e" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+     <line x1="65" y1="40" x2="56" y2="25" stroke="${c}" stroke-width="1.8" stroke-linecap="round"/>
+     <line x1="65" y1="40" x2="74" y2="25" stroke="${c}" stroke-width="1.8" stroke-linecap="round"/>
+     <circle cx="56" cy="24" r="3" fill="${c}"/><circle cx="74" cy="24" r="3" fill="${c}"/>`,
+
+    // 2 — Protostar: glowing ball with accretion wisps
+    `<circle cx="65" cy="70" r="33" fill="${c}" opacity="0.08"/>
+     <circle cx="65" cy="70" r="26" fill="${c}" opacity="0.15"/>
+     <circle cx="65" cy="70" r="20" fill="${c}" opacity="0.9"/>
+     <ellipse cx="65" cy="70" rx="42" ry="9" stroke="${c}" stroke-width="1.5" fill="none" opacity="0.25" transform="rotate(-20 65 70)"/>
+     <ellipse cx="65" cy="62" rx="13" ry="8" fill="white" opacity="0.1"/>
+     <circle cx="59" cy="68" r="5" fill="#05070e"/><circle cx="71" cy="68" r="5" fill="#05070e"/>
+     <circle cx="60.5" cy="67" r="1.6" fill="${c}"/><circle cx="72.5" cy="67" r="1.6" fill="${c}"/>
+     <path d="M60 78 Q65 84 70 78" stroke="#05070e" stroke-width="2" fill="none" stroke-linecap="round"/>
+     <path d="M45 95 Q36 108 32 120" stroke="${c}" stroke-width="7" stroke-linecap="round" fill="none"/>
+     <path d="M85 95 Q94 108 98 120" stroke="${c}" stroke-width="7" stroke-linecap="round" fill="none"/>`,
+
+    // 3 — Main sequence: stable radiant star with rays
+    `<circle cx="65" cy="68" r="28" fill="${c}" opacity="0.93"/>
+     <ellipse cx="65" cy="57" rx="18" ry="11" fill="white" opacity="0.1"/>
+     ${[0,40,80,120,160,200,240,280,320].map(a=>{
+       const r=a*Math.PI/180, x1=65+Math.cos(r)*30, y1=68+Math.sin(r)*30, x2=65+Math.cos(r)*42, y2=68+Math.sin(r)*42;
+       return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${c}" stroke-width="1.8" opacity="0.35" stroke-linecap="round"/>`;
+     }).join('')}
+     <circle cx="58" cy="66" r="5.5" fill="#05070e"/><circle cx="72" cy="66" r="5.5" fill="#05070e"/>
+     <circle cx="59.5" cy="64.5" r="1.8" fill="${c}"/><circle cx="73.5" cy="64.5" r="1.8" fill="${c}"/>
+     <path d="M59 77 Q65 83 71 77" stroke="#05070e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+     <path d="M37 82 Q25 94 20 112" stroke="${c}" stroke-width="9" stroke-linecap="round" fill="none"/>
+     <path d="M93 82 Q105 94 110 112" stroke="${c}" stroke-width="9" stroke-linecap="round" fill="none"/>`,
+
+    // 4 — Red giant: large, pulsing shell
+    `<circle cx="65" cy="68" r="36" fill="${c}" opacity="0.1"/>
+     <circle cx="65" cy="68" r="28" fill="${c}" opacity="0.93"/>
+     <ellipse cx="65" cy="56" rx="20" ry="12" fill="white" opacity="0.1"/>
+     ${[0,50,100,150,200,250,300].map(a=>{const r=a*Math.PI/180, x1=65+Math.cos(r)*30, y1=68+Math.sin(r)*30, x2=65+Math.cos(r)*46, y2=68+Math.sin(r)*46; return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${c}" stroke-width="2.2" opacity="0.4" stroke-linecap="round"/>`;}).join('')}
+     <!-- pulsar tick marks — nod to Burnell -->
+     <rect x="50" y="110" width="30" height="3" rx="1.5" fill="${c}" opacity="0.3"/>
+     <rect x="54" y="107" width="4" height="9" rx="2" fill="${c}" opacity="0.6"/>
+     <rect x="63" y="109" width="4" height="5" rx="2" fill="${c}" opacity="0.5"/>
+     <rect x="72" y="107" width="4" height="9" rx="2" fill="${c}" opacity="0.6"/>
+     <circle cx="57" cy="65" r="6" fill="#05070e"/><circle cx="73" cy="65" r="6" fill="#05070e"/>
+     <circle cx="58.5" cy="63.5" r="2" fill="${c}"/><circle cx="74.5" cy="63.5" r="2" fill="${c}"/>
+     <path d="M58 78 Q65 86 72 78" stroke="#05070e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+     <path d="M37 80 Q24 95 18 114" stroke="${c}" stroke-width="10" stroke-linecap="round" fill="none"/>
+     <path d="M93 80 Q106 95 112 114" stroke="${c}" stroke-width="10" stroke-linecap="round" fill="none"/>`,
+
+    // 5 — Black hole: event horizon + photon ring + Penrose frame-drag spirals
+    `<!-- outer glow rings -->
+     <circle cx="65" cy="65" r="48" fill="none" stroke="${c}" stroke-width="0.5" opacity="0.1"/>
+     <circle cx="65" cy="65" r="40" fill="none" stroke="${c}" stroke-width="0.7" opacity="0.18"/>
+     <!-- photon ring -->
+     <circle cx="65" cy="65" r="30" fill="none" stroke="${c}" stroke-width="2" opacity="0.5"/>
+     <!-- frame-drag Penrose spirals -->
+     <path d="M65 65 m20 0 a20 20 0 1 1 -0.1 0" stroke="${c}" stroke-width="1" fill="none" opacity="0.25" stroke-dasharray="3 4"/>
+     <!-- event horizon -->
+     <circle cx="65" cy="65" r="22" fill="#05070e"/>
+     <circle cx="65" cy="65" r="22" fill="none" stroke="${c}" stroke-width="2.5" opacity="0.7"/>
+     <!-- white "eye" if you stare long enough — small dot -->
+     <circle cx="65" cy="65" r="3" fill="${c}" opacity="0.25"/>
+     <!-- Hawking radiation dots -->
+     ${[...Array(6)].map((_,i)=>{const a=i*60*Math.PI/180, x=65+Math.cos(a)*34, y=65+Math.sin(a)*34; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.5" fill="${c}" opacity="0.5"/>`;}).join('')}
+     <!-- accretion hint (faint) -->
+     <ellipse cx="65" cy="65" rx="50" ry="9" fill="none" stroke="${c}" stroke-width="1" opacity="0.15" transform="rotate(-30 65 65)"/>`,
+
+    // 6 — X-ray binary: blazing disk + compact jet + companion star + X-ray lobes
+    `<!-- companion star -->
+     <circle cx="22" cy="40" r="14" fill="${pal[3]}" opacity="0.7"/>
+     <circle cx="22" cy="35" r="8" fill="white" opacity="0.1"/>
+     <!-- accretion stream -->
+     <path d="M36 40 Q52 52 50 65" stroke="${pal[3]}" stroke-width="1.8" fill="none" opacity="0.5" stroke-dasharray="3 3"/>
+     <!-- disk -->
+     <ellipse cx="65" cy="70" rx="36" ry="8" fill="${c}" opacity="0.9"/>
+     <ellipse cx="65" cy="70" rx="28" ry="6" fill="white" opacity="0.15"/>
+     <ellipse cx="65" cy="70" rx="18" ry="4" fill="white" opacity="0.2"/>
+     <!-- compact object -->
+     <circle cx="65" cy="70" r="8" fill="#05070e"/>
+     <circle cx="65" cy="70" r="8" fill="none" stroke="${c}" stroke-width="2.5" opacity="0.9"/>
+     <!-- relativistic jets -->
+     <path d="M65 62 Q58 40 62 18" stroke="${c}" stroke-width="3.5" opacity="0.8" stroke-linecap="round" fill="none"/>
+     <path d="M65 78 Q72 100 68 122" stroke="${c}" stroke-width="3.5" opacity="0.8" stroke-linecap="round" fill="none"/>
+     <!-- X-ray lobes -->
+     <ellipse cx="62" cy="18" rx="8" ry="5" fill="${c}" opacity="0.5"/>
+     <ellipse cx="68" cy="122" rx="8" ry="5" fill="${c}" opacity="0.5"/>
+     <!-- face elements on disk edge -->
+     <circle cx="57" cy="69" r="3.5" fill="#05070e"/><circle cx="73" cy="69" r="3.5" fill="#05070e"/>
+     <circle cx="58.2" cy="68" r="1.2" fill="${c}"/><circle cx="74.2" cy="68" r="1.2" fill="${c}"/>
+     <path d="M58 75 Q65 80 72 75" stroke="#05070e" stroke-width="2" fill="none" stroke-linecap="round"/>`,
+  ];
+
+  svg.innerHTML = `<defs>
+    <filter id="gf" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs><g filter="url(#gf)">${frames[idx]}</g>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// ACTIONS DATA
+// ══════════════════════════════════════════════════════════
+const ACTIONS = {
+  gen: [
+    { id:'commit', xp:15, ico:'💾', label:'Pushed a commit',     stat:'',      cls:'', log:'Pushed code to GitHub 🐍' },
+    { id:'debug',  xp:12, ico:'🐛', label:'Crushed a bug',       stat:'',      cls:'', log:'Squashed a bug 🐛' },
+    { id:'refactor',xp:18,ico:'🔧', label:'Refactored code',     stat:'',      cls:'', log:'Code is cleaner than a blackbody 🌡️' },
+    { id:'ship',   xp:30, ico:'🚀', label:'Shipped a feature',   stat:'',      cls:'', log:'Shipped something real 🚀' },
+    { id:'review', xp:20, ico:'🔍', label:'Code review',         stat:'',      cls:'', log:'Reviewed code with care 🔍' },
+    { id:'docs',   xp:10, ico:'📝', label:'Wrote docs / README', stat:'',      cls:'', log:'Documentation matters 📝' },
+  ],
+  jax: [
+    { id:'jax_tut',  xp:20, ico:'⚡', label:'JAX tutorial / docs', stat:'jax', cls:'j', log:'Absorbed JAX wisdom ⚡' },
+    { id:'jit',      xp:25, ico:'🏎️', label:'Used jit / vmap / pmap',stat:'jax',cls:'j', log:'JIT compiled. Speed god 🏎️' },
+    { id:'autodiff', xp:22, ico:'∂',  label:'Custom autodiff',       stat:'jax', cls:'j', log:'Wrote a custom gradient ∂' },
+    { id:'diffsim',  xp:28, ico:'🌀', label:'Diff. simulator',       stat:'jax', cls:'j', log:'Differentiable simulator step 🌀' },
+    { id:'conv',     xp:35, ico:'✅', label:'Model converged!',      stat:'jax', cls:'j', log:'MODEL CONVERGED ✅🎉' },
+    { id:'nans',     xp:10, ico:'🌪️', label:'Survived NaNs',        stat:'',    cls:'j', log:'NaN storm survived. Respect 🌪️' },
+  ],
+  xray: [
+    { id:'xstar_run', xp:20, ico:'💫', label:'Ran XSTAR / CLOUDY',   stat:'xray', cls:'x', log:'Photoionisation code fired up 💫' },
+    { id:'xspec',     xp:22, ico:'📡', label:'XSPEC model fit',       stat:'xray', cls:'x', log:'Spectral fitting in XSPEC 📡' },
+    { id:'xray_data', xp:18, ico:'🔭', label:'Reduced X-ray data',    stat:'xray', cls:'x', log:'X-ray data wrangled 🔭' },
+    { id:'reflection',xp:28, ico:'🪞', label:'Reflection spectroscopy',stat:'xray',cls:'x', log:'Disk reflection spectrum 🪞' },
+    { id:'xrb_model', xp:30, ico:'☀️', label:'XRB / accretion model', stat:'xray', cls:'x', log:'Accretion disk physics ☀️' },
+    { id:'timing',    xp:22, ico:'⏱', label:'Timing analysis / QPO',  stat:'xray', cls:'x', log:'Quasi-periodic oscillation found ⏱' },
+  ],
+  gal: [
+    { id:'uvex_data', xp:20, ico:'🌌', label:'UVEX / UV data work',   stat:'gal', cls:'g', log:'UV galaxy data processed 🌌' },
+    { id:'gal_spec',  xp:22, ico:'🌈', label:'Galaxy spectroscopy',   stat:'gal', cls:'g', log:'Galaxy spectrum analysed 🌈' },
+    { id:'sed',       xp:25, ico:'📊', label:'SED fitting',           stat:'gal', cls:'g', log:'SED fit converged 📊' },
+    { id:'redshift',  xp:18, ico:'🔴', label:'Redshift analysis',     stat:'gal', cls:'g', log:'Redshift measured 🔴' },
+    { id:'morphology',xp:20, ico:'🌀', label:'Galaxy morphology',     stat:'gal', cls:'g', log:'Morphology classified 🌀' },
+    { id:'catalog',   xp:15, ico:'📋', label:'Catalog work',          stat:'gal', cls:'g', log:'Catalog cross-matched 📋' },
+  ],
+  bayes: [
+    { id:'prior',    xp:15, ico:'🔮', label:'Designed priors',        stat:'bayes',cls:'b', log:'Thoughtful priors set 🔮' },
+    { id:'mcmc',     xp:25, ico:'📈', label:'MCMC converged',         stat:'bayes',cls:'b', log:'Chains mixed. Gelman-Rubin ✓ 📈' },
+    { id:'vi',       xp:22, ico:'🧮', label:'Variational inference',  stat:'bayes',cls:'b', log:'Variational inference ran 🧮' },
+    { id:'evidence', xp:30, ico:'🏆', label:'Model evidence / BF',    stat:'bayes',cls:'b', log:'Bayes factor computed 🏆' },
+    { id:'posterior',xp:18, ico:'🎨', label:'Posterior plot',         stat:'bayes',cls:'b', log:'Beautiful posterior plotted 🎨' },
+    { id:'nested',   xp:28, ico:'🔁', label:'Nested sampling',        stat:'bayes',cls:'b', log:'Nested sampling complete 🔁' },
+  ],
+};
+
+// ══════════════════════════════════════════════════════════
+// STREAK
+// ══════════════════════════════════════════════════════════
+function checkStreak(){
+  const today = new Date().toDateString();
+  if(S.lastDate === today) return;
+  const yest = new Date(Date.now()-86400000).toDateString();
+  if(S.lastDate === yest) S.streak++;
+  else if(S.lastDate && S.lastDate !== yest) S.streak=0;
+  S.usedToday=[];
+  // shift weekXP
+  if(S.lastDate && S.lastDate !== today){
+    S.weekXP.push(0);
+    if(S.weekXP.length>7) S.weekXP.shift();
+  }
+  S.lastDate=today;
+}
+
+// ══════════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════════
+function pct(v, max){ return Math.min(v/max*100,100).toFixed(1)+'%'; }
+
+function render(){
+  const si = getStageIdx();
+  const st = STAGES[si];
+  const next = STAGES[si+1];
+
+  document.getElementById('stageLabel').textContent = `STAGE ${['I','II','III','IV','V','VI','VII'][si]}`;
+  document.getElementById('petNameDisplay').textContent = st.pName;
+  document.getElementById('petQuote').textContent = st.quote;
+  document.getElementById('stageBadge')&&(document.getElementById('stageBadge').textContent=st.name);
+
+  document.getElementById('streakChip').textContent = `🔥 ${S.streak}d`;
+  document.getElementById('xpChip').textContent = `✦ ${S.xp} XP`;
+
+  if(S.ghUser){
+    const g = document.getElementById('ghChip');
+    g.style.display = '';
+    g.textContent = `⬡ ${S.ghUser}`;
+  }
+
+  document.getElementById('bJax').style.width   = pct(S.jax,25);
+  document.getElementById('bXray').style.width  = pct(S.xray,25);
+  document.getElementById('bGal').style.width   = pct(S.gal,25);
+  document.getElementById('bBayes').style.width = pct(S.bayes,25);
+  document.getElementById('nJax').textContent   = S.jax;
+  document.getElementById('nXray').textContent  = S.xray;
+  document.getElementById('nGal').textContent   = S.gal;
+  document.getElementById('nBayes').textContent = S.bayes;
+
+  if(next){
+    const range = next.minXP - st.minXP;
+    const prog = S.xp - st.minXP;
+    document.getElementById('evoFill').style.width = Math.min(prog/range*100,100)+'%';
+    document.getElementById('evoNext').textContent = `→ ${next.name} (${next.minXP-S.xp} XP)`;
+  } else {
+    document.getElementById('evoFill').style.width = '100%';
+    document.getElementById('evoNext').textContent = 'MAX TIER';
+  }
+
+  drawPet(si);
+  renderLog();
+  renderReport();
+}
+
+// ══════════════════════════════════════════════════════════
+// LOG
+// ══════════════════════════════════════════════════════════
+function addLog(msg){
+  const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  S.log.unshift({t,msg});
+  if(S.log.length>40) S.log.pop();
+  renderLog();
+}
+
+function renderLog(){
+  const list = document.getElementById('logList');
+  if(!list) return;
+  list.innerHTML = S.log.length
+    ? S.log.map(e=>`<div class="log-entry"><span class="lt">${e.t}</span><span>${e.msg}</span></div>`).join('')
+    : '<div class="log-entry"><span class="lt">INIT</span><span>Planck materialised from quantum foam 🌌</span></div>';
+}
+
+// ══════════════════════════════════════════════════════════
+// WORK TABS
+// ══════════════════════════════════════════════════════════
+let activeWCat = 'gen';
+
+function renderActGrid(){
+  const grid = document.getElementById('actGrid');
+  const acts = ACTIONS[activeWCat] || [];
+  grid.innerHTML = acts.map(a => `
+    <button class="act-btn ${a.cls} ${S.usedToday.includes(a.id)?'used':''}"
+      data-id="${a.id}" data-xp="${a.xp}" data-stat="${a.stat}" data-log="${a.log}">
+      <span class="ico">${a.ico}</span>
+      <span>${a.label}</span>
+      <span class="xptag">+${a.xp} XP${a.stat?' · '+a.stat.toUpperCase()+'↑':''}</span>
+    </button>`).join('');
+
+  grid.querySelectorAll('.act-btn:not(.used)').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const id=btn.dataset.id, xp=parseInt(btn.dataset.xp), stat=btn.dataset.stat, log=btn.dataset.log;
+      if(S.usedToday.includes(id)) return;
+      checkStreak();
+      const prevSi = getStageIdx();
+      S.xp += xp;
+      if(stat==='jax')   S.jax++;
+      if(stat==='xray')  S.xray++;
+      if(stat==='gal')   S.gal++;
+      if(stat==='bayes') S.bayes++;
+      S.lastDate = new Date().toDateString();
+      if(!S.streak) S.streak=1;
+      S.usedToday.push(id);
+      S.totalActions++;
+      S.weekXP[S.weekXP.length-1] = (S.weekXP[S.weekXP.length-1]||0)+xp;
+      save();
+      addLog(log + ` (+${xp} XP)`);
+      btn.classList.add('used');
+
+      const newSi = getStageIdx();
+      const wrap = document.getElementById('petWrap');
+      wrap.classList.remove('bouncing','evolving');
+      void wrap.offsetWidth;
+      if(newSi>prevSi){
+        wrap.classList.add('evolving');
+        addLog(`🌌 EVOLVED → ${STAGES[newSi].name}! ${STAGES[newSi].pName} awakens.`);
+      } else {
+        wrap.classList.add('bouncing');
+      }
+      setTimeout(()=>wrap.classList.remove('bouncing','evolving'),1400);
+      render();
+    });
+  });
+}
+
+document.getElementById('workTabs').addEventListener('click', e=>{
+  const btn = e.target.closest('.wtab');
+  if(!btn) return;
+  activeWCat = btn.dataset.wcat;
+  document.querySelectorAll('.wtab').forEach(b=>{
+    b.className = 'wtab';
+    if(b.dataset.wcat===activeWCat) b.classList.add('active-'+activeWCat);
+  });
+  renderActGrid();
+});
+
+// ══════════════════════════════════════════════════════════
+// PAPERS
+// ══════════════════════════════════════════════════════════
+let selRel = 'core';
+let paperFilter = 'all';
+
+document.getElementById('relRow').addEventListener('click', e=>{
+  const btn = e.target.closest('.rel-btn');
+  if(!btn) return;
+  selRel = btn.dataset.rel;
+  document.querySelectorAll('.rel-btn').forEach(b=>{
+    b.className='rel-btn';
+    if(b.dataset.rel===selRel) b.classList.add('sel-'+selRel);
+  });
+});
+
+document.querySelectorAll('.rel-btn')[0].classList.add('sel-core');
+
+document.getElementById('addPaperBtn').addEventListener('click',()=>{
+  const title = document.getElementById('pTitle').value.trim();
+  if(!title) return;
+  const paper = {
+    id: Date.now(),
+    title,
+    cat: document.getElementById('pCat').value,
+    authors: document.getElementById('pAuthors').value.trim(),
+    note: document.getElementById('pNote').value.trim(),
+    rel: selRel,
+    date: new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})
+  };
+  S.papers.unshift(paper);
+  save();
+  document.getElementById('pTitle').value='';
+  document.getElementById('pAuthors').value='';
+  document.getElementById('pNote').value='';
+  addLog(`📄 Paper added: "${title.slice(0,50)}${title.length>50?'…':''}" [${paper.cat}, ${paper.rel}]`);
+  renderPapers();
+  renderReport();
+});
+
+document.getElementById('paperFilters').addEventListener('click', e=>{
+  const btn = e.target.closest('.pfilt');
+  if(!btn) return;
+  paperFilter = btn.dataset.pf;
+  document.querySelectorAll('.pfilt').forEach(b=>b.classList.toggle('active', b.dataset.pf===paperFilter));
+  renderPapers();
+});
+
+function catLabel(c){ return {jax:'JAX/ML',xray:'XSTAR/X-ray',gal:'Galaxies/UVEX',bayes:'Bayes/Stats',other:'Other'}[c]||c; }
+function catClass(c){ return {jax:'cat-jax',xray:'cat-xray',gal:'cat-gal',bayes:'cat-bayes',other:'cat-other'}[c]||'cat-other'; }
+function relLabel(r){ return {core:'Core',adjacent:'Adjacent',tangential:'Tangential'}[r]||r; }
+
+function renderPapers(){
+  const list = document.getElementById('paperList');
+  let papers = S.papers;
+  if(paperFilter==='core') papers = papers.filter(p=>p.rel==='core');
+  else if(paperFilter!=='all') papers = papers.filter(p=>p.cat===paperFilter);
+
+  if(!papers.length){
+    list.innerHTML = `<div class="empty-state">No papers yet${paperFilter!=='all'?' in this category':''}.<br/>Add one above.</div>`;
+    return;
+  }
+
+  list.innerHTML = papers.map(p=>`
+    <div class="paper-item">
+      <div class="paper-top">
+        <div class="paper-title">${escHtml(p.title)}</div>
+        <button class="paper-delete" data-pid="${p.id}" title="Remove">✕</button>
+      </div>
+      <div class="paper-meta">
+        <span class="cat-badge ${catClass(p.cat)}">${catLabel(p.cat)}</span>
+        <span class="rel-dot ${p.rel}"></span>
+        <span class="rel-text">${relLabel(p.rel)}</span>
+        ${p.authors?`<span style="font-family:'DM Mono',monospace;font-size:0.54rem;color:var(--muted);font-style:italic;">${escHtml(p.authors)}</span>`:''}
+      </div>
+      ${p.note?`<div class="paper-note">${escHtml(p.note)}</div>`:''}
+      <div class="paper-date">${p.date}</div>
+    </div>`).join('');
+
+  list.querySelectorAll('.paper-delete').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      S.papers = S.papers.filter(p=>p.id!==parseInt(btn.dataset.pid));
+      save();
+      renderPapers();
+      renderReport();
+    });
+  });
+}
+
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ══════════════════════════════════════════════════════════
+// REPORT
+// ══════════════════════════════════════════════════════════
+function renderReport(){
+  document.getElementById('r-streak').textContent = S.streak;
+  document.getElementById('r-xp').textContent = S.xp;
+  document.getElementById('r-papers').textContent = S.papers.length;
+  document.getElementById('r-actions').textContent = S.totalActions;
+
+  // Week chart
+  const wc = document.getElementById('weekChart');
+  const days=['M','T','W','T','F','S','S'];
+  const todayIdx = (new Date().getDay()+6)%7;
+  const maxXP = Math.max(...S.weekXP, 1);
+  wc.innerHTML = S.weekXP.map((v,i)=>{
+    const h = Math.max(4, Math.round(v/maxXP*52));
+    const isT = (i===S.weekXP.length-1);
+    return `<div class="wbar-wrap">
+      <div class="wbar${isT?' today':''}" style="height:${h}px" title="${v} XP"></div>
+      <div class="wday">${days[(todayIdx-(S.weekXP.length-1-i)+7)%7]}</div>
+    </div>`;
+  }).join('');
+
+  // Donut (skill focus)
+  const total = S.jax+S.xray+S.gal+S.bayes || 1;
+  const segs = [
+    {label:'JAX/ML',    val:S.jax,   col:'var(--jax)'},
+    {label:'X-ray',     val:S.xray,  col:'var(--xray)'},
+    {label:'Galaxies',  val:S.gal,   col:'var(--gal)'},
+    {label:'Bayes',     val:S.bayes, col:'var(--bayes)'},
+  ];
+  let acc=0;
+  const gradient = segs.map(s=>{
+    const pct2=s.val/total*100;
+    const seg=`${s.col} ${acc.toFixed(1)}% ${(acc+pct2).toFixed(1)}%`;
+    acc+=pct2; return seg;
+  }).join(', ');
+  document.getElementById('donutChart').style.background = `conic-gradient(${gradient})`;
+  const biggest = segs.reduce((a,b)=>b.val>a.val?b:a);
+  document.getElementById('donutCenter').textContent = biggest.val>0?biggest.label:'—';
+  document.getElementById('donutLegend').innerHTML = segs.map(s=>
+    `<div class="donut-leg-item"><div class="leg-dot" style="background:${s.col}"></div>${s.label}: ${s.val>0?(s.val/total*100).toFixed(0)+'%':'0%'}</div>`
+  ).join('');
+
+  // Paper breakdown
+  const cats=['jax','xray','gal','bayes','other'];
+  const catCounts = Object.fromEntries(cats.map(c=>[c, S.papers.filter(p=>p.cat===c).length]));
+  const maxP = Math.max(...Object.values(catCounts),1);
+  document.getElementById('paperBreakdown').innerHTML = cats.map(c=>{
+    const n=catCounts[c];
+    const barCols={jax:'var(--jax)',xray:'var(--xray)',gal:'var(--gal)',bayes:'var(--bayes)',other:'var(--muted)'};
+    return `<div class="pb-row">
+      <span class="pb-label">${catLabel(c)}</span>
+      <div class="pb-bg"><div class="pb-fill" style="width:${pct(n,maxP)};background:${barCols[c]}"></div></div>
+      <span class="pb-n">${n}</span>
+    </div>`;
+  }).join('');
+
+  // Distraction warning
+  const tangential = S.papers.filter(p=>p.rel==='tangential');
+  const dw = document.getElementById('distractionWarn');
+  if(tangential.length===0){
+    dw.textContent = 'No tangential papers logged. Excellent focus — or you haven\'t added papers yet.';
+    dw.style.color='var(--bayes)';
+  } else if(tangential.length<=2){
+    dw.textContent=`${tangential.length} tangential paper${tangential.length>1?'s':''} logged. Mild drift detected — keep it in check.`;
+    dw.style.color='var(--streak)';
+  } else {
+    const latest = tangential.slice(0,3).map(p=>`"${p.title.slice(0,40)}…"`).join(', ');
+    dw.textContent=`⚠️ ${tangential.length} tangential papers logged. Consider whether these are worth your time. Recent culprits: ${latest}`;
+    dw.style.color='var(--xray)';
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// GITHUB
+// ══════════════════════════════════════════════════════════
+document.getElementById('ghFetch').addEventListener('click', fetchGH);
+
+async function fetchGH(){
+  const user = document.getElementById('ghInput').value.trim();
+  if(!user) return;
+  const btn = document.getElementById('ghFetch');
+  btn.disabled=true; btn.textContent='Syncing…';
+  document.getElementById('ghError').style.display='none';
+
+  try {
+    // User profile
+    const [profileRes, reposRes] = await Promise.all([
+      fetch(`https://api.github.com/users/${encodeURIComponent(user)}`),
+      fetch(`https://api.github.com/users/${encodeURIComponent(user)}/repos?sort=updated&per_page=8`)
+    ]);
+
+    if(!profileRes.ok) throw new Error(profileRes.status===404?`User "${user}" not found.`:'GitHub API error. Check username.');
+
+    const profile = await profileRes.json();
+    const repos = reposRes.ok ? await reposRes.json() : [];
+
+    S.ghUser = user;
+    S.ghCache = { profile, repos };
+    save();
+
+    renderGH(profile, repos);
+    document.getElementById('ghChip').style.display='';
+    document.getElementById('ghChip').textContent=`⬡ ${user}`;
+
+    // Award XP for first GitHub sync
+    if(!S.usedToday.includes('gh_sync')){
+      S.xp+=10; S.usedToday.push('gh_sync'); S.totalActions++;
+      S.weekXP[S.weekXP.length-1]=(S.weekXP[S.weekXP.length-1]||0)+10;
+      save();
+      addLog(`⬡ GitHub synced: ${user} (+10 XP) 🌐`);
+      render();
+    }
+  } catch(err){
+    document.getElementById('ghError').style.display='block';
+    document.getElementById('ghError').textContent=err.message;
+  }
+
+  btn.disabled=false; btn.textContent='Sync ⬡';
+}
+
+function renderGH(profile, repos){
+  document.getElementById('ghContent').style.display='block';
+
+  document.getElementById('ghStats').innerHTML=`
+    <div class="gh-stat"><span class="n">${profile.public_repos??'—'}</span><span class="l">REPOS</span></div>
+    <div class="gh-stat"><span class="n">${profile.followers??'—'}</span><span class="l">FOLLOWERS</span></div>
+    <div class="gh-stat"><span class="n">${profile.following??'—'}</span><span class="l">FOLLOWING</span></div>`;
+
+
+  // Add activity graph in its own full-width container
+const activityGraph = document.createElement('div');
+activityGraph.style.cssText = 'margin-top: 1rem; width: 100%;';
+activityGraph.innerHTML = `
+  <div style="font-family: 'DM Mono', monospace; font-size: 0.58rem; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 0.5rem;">RECENT ACTIVITY</div>
+  <img src="https://github-readme-activity-graph.vercel.app/graph?username=${profile.login}&theme=react-dark&bg_color=0f1525&color=38bdf8&line=34d399&point=ffffff&area=true&hide_border=true&custom_title=&height=500" 
+      style="width: 100%; border-radius: 10px; display: block;"
+      alt="Activity Graph">
+`;
+document.getElementById('ghContent').appendChild(activityGraph);
+
+  // Repos
+  document.getElementById('ghRepos').innerHTML = repos.slice(0,6).map(r=>`
+    <a class="repo-row" href="${r.html_url}" target="_blank" rel="noopener">
+      <span class="repo-name">📦 ${r.name}</span>
+      <span class="repo-meta">
+        ${r.language?`<span class="repo-lang">${r.language}</span>`:''}
+        <span>⭐ ${r.stargazers_count}</span>
+      </span>
+    </a>`).join('');
+}
+
+// Restore GitHub on load
+if(S.ghUser && S.ghCache){
+  document.getElementById('ghInput').value=S.ghUser;
+  document.getElementById('ghContent').style.display='block';
+  renderGH(S.ghCache.profile, S.ghCache.repos);
+}
+
+// ══════════════════════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════════════════════
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('page-'+btn.dataset.page).classList.add('active');
+    if(btn.dataset.page==='report') renderReport();
+    if(btn.dataset.page==='papers') renderPapers();
+    if(btn.dataset.page==='log') renderActGrid();
+  });
+});
+
+// ══════════════════════════════════════════════════════════
+// UTILITY BUTTONS
+// ══════════════════════════════════════════════════════════
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  if(confirm('Reset Planck to the quantum foam? All progress will be lost.')){
+    localStorage.removeItem(KEY);
+    location.reload();
+  }
+});
+
+document.getElementById('newDayBtn').addEventListener('click',()=>{
+  S.lastDate=new Date(Date.now()-86400000).toDateString();
+  S.usedToday=[];
+  save();
+  checkStreak();
+  save();
+  addLog('⏭ New day simulated — daily actions reset.');
+  renderActGrid();
+  render();
+});
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+checkStreak();
+if(S.weekXP.length<7) S.weekXP = [...Array(7-S.weekXP.length).fill(0), ...S.weekXP];
+save();
+render();
+renderActGrid();
+renderPapers();
+renderReport();
+</script>
+</body>
+</html>
